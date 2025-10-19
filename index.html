@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tutor Personale - Groq</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Segoe UI Emoji', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subject-select, .level-select {
+            padding: 0.5rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            background: white;
+            cursor: pointer;
+        }
+
+        .subject-select:focus, .level-select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .api-key-section {
+            background: rgba(255, 243, 205, 0.95);
+            padding: 1rem 1.5rem;
+            border-bottom: 2px solid #ffc107;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .api-key-section input {
+            flex: 1;
+            padding: 0.5rem;
+            border: 2px solid #d0d0d0;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .api-key-section button {
+            padding: 0.5rem 1.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .api-key-section button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .mode-selector {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            gap: 0.5rem;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+            overflow-x: auto;
+        }
+
+        .mode-btn {
+            padding: 0.5rem 1rem;
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .mode-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .mode-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: transparent;
+        }
+
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .message {
+            display: flex;
+            gap: 1rem;
+            max-width: 800px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            margin-left: auto;
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        .message.user .message-avatar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .message.assistant .message-avatar {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .message-content {
+            background: white;
+            padding: 1.2rem;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            line-height: 1.7;
+            white-space: pre-wrap;
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .input-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 1.5rem;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+        }
+
+        .input-container {
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .input-container textarea {
+            flex: 1;
+            padding: 0.9rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-family: inherit;
+            resize: none;
+            min-height: 60px;
+            max-height: 150px;
+        }
+
+        .input-container textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .input-container button {
+            padding: 0.9rem 1.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .input-container button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .input-container button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #f5576c;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        .clear-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%) !important;
+            margin-left: auto;
+        }
+
+        .welcome-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin-bottom: 1rem;
+        }
+
+        .welcome-card h3 {
+            color: #667eea;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .welcome-card ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .welcome-card li {
+            padding: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+
+        .welcome-card li:before {
+            content: "✨";
+            position: absolute;
+            left: 0;
+        }
+
+        .tip-box {
+            background: rgba(255,255,255,0.9);
+            border-left: 4px solid #667eea;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📚 Tutor Personale</h1>
+        <select class="subject-select" id="subjectSelect">
+            <option value="">Materia...</option>
+            <option value="Matematica">📐 Matematica</option>
+            <option value="Fisica">⚛️ Fisica</option>
+            <option value="Chimica">🧪 Chimica</option>
+            <option value="Italiano">📖 Italiano</option>
+            <option value="Storia">📜 Storia</option>
+            <option value="Geografia">🌍 Geografia</option>
+            <option value="Inglese">🇬🇧 Inglese</option>
+            <option value="Filosofia">💭 Filosofia</option>
+            <option value="Informatica">💻 Informatica</option>
+            <option value="Biologia">🌱 Biologia</option>
+        </select>
+        <select class="level-select" id="levelSelect">
+            <option value="elementari">Elementari</option>
+            <option value="medie">Medie</option>
+            <option value="superiori" selected>Superiori</option>
+            <option value="università">Università</option>
+        </select>
+        <button class="clear-btn" onclick="clearChat()">Nuova sessione</button>
+    </div>
+
+    <div class="api-key-section" id="apiKeySection">
+        <span>🔑 API Key:</span>
+        <input type="password" id="apiKeyInput" placeholder="Inserisci la tua Groq API Key">
+        <button onclick="saveApiKey()">Salva</button>
+        <small>Ottieni la chiave su <a href="https://console.groq.com" target="_blank" style="color: #667eea;">console.groq.com</a></small>
+    </div>
+
+    <div class="mode-selector">
+        <button class="mode-btn active" data-mode="spiegazione" onclick="setMode('spiegazione')">💡 Spiegazione</button>
+        <button class="mode-btn" data-mode="esercizi" onclick="setMode('esercizi')">✏️ Esercizi</button>
+        <button class="mode-btn" data-mode="ripasso" onclick="setMode('ripasso')">📝 Ripasso</button>
+        <button class="mode-btn" data-mode="correzione" onclick="setMode('correzione')">✅ Correzione compiti</button>
+        <button class="mode-btn" data-mode="quiz" onclick="setMode('quiz')">🎯 Quiz</button>
+    </div>
+
+    <div class="chat-container" id="chatContainer">
+        <div class="welcome-card">
+            <h3>👋 Ciao! Sono il tuo tutor personale</h3>
+            <p style="margin-bottom: 1rem;">Posso aiutarti con:</p>
+            <ul>
+                <li>Spiegazioni semplici e chiare di argomenti difficili</li>
+                <li>Esercizi guidati passo dopo passo</li>
+                <li>Correzione e revisione dei compiti</li>
+                <li>Preparazione per verifiche ed esami</li>
+                <li>Quiz per testare le tue conoscenze</li>
+            </ul>
+            <div class="tip-box">
+                💡 <strong>Consiglio:</strong> Seleziona la materia e il livello scolastico, poi scegli cosa vuoi fare oggi!
+            </div>
+        </div>
+    </div>
+
+    <div class="input-section">
+        <div class="input-container">
+            <textarea 
+                id="messageInput" 
+                placeholder="Fai una domanda o descrivi cosa ti serve aiuto..."
+                onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault();sendMessage();}"
+            ></textarea>
+            <button onclick="sendMessage()" id="sendBtn">Invia</button>
+        </div>
+    </div>
+
+    <script>
+        let apiKey = '';
+        let conversationHistory = [];
+        let currentMode = 'spiegazione';
+
+        const MODE_PROMPTS = {
+            spiegazione: `Sei un tutor paziente e incoraggiante. Quando spieghi:
+- Usa un linguaggio semplice e esempi concreti
+- Scomponi i concetti complessi in parti piccole
+- Verifica che lo studente abbia capito prima di procedere
+- Usa analogie e metafore quando utile
+- Incoraggia sempre lo studente`,
+
+            esercizi: `Sei un tutor che crea esercizi guidati. Quando proponi esercizi:
+- Inizia con esercizi semplici e aumenta gradualmente la difficoltà
+- Fornisci aiuti e suggerimenti se lo studente è in difficoltà
+- Guida lo studente passo dopo passo
+- Celebra i successi e incoraggia dopo gli errori
+- Spiega sempre perché una risposta è corretta o sbagliata`,
+
+            ripasso: `Sei un tutor che aiuta a ripassare. Durante il ripasso:
+- Riassumi i concetti chiave in modo chiaro
+- Crea schemi e mappe concettuali mentali
+- Evidenzia i punti più importanti
+- Suggerisci tecniche di memorizzazione
+- Proponi esempi pratici per fissare i concetti`,
+
+            correzione: `Sei un tutor che corregge i compiti con gentilezza. Quando correggi:
+- Identifica gli errori senza giudicare
+- Spiega perché qualcosa è sbagliato
+- Mostra la versione corretta
+- Suggerisci come evitare errori simili in futuro
+- Evidenzia anche ciò che è fatto bene`,
+
+            quiz: `Sei un tutor che crea quiz educativi. Quando fai quiz:
+- Fai domande appropriate al livello dello studente
+- Dai feedback immediato dopo ogni risposta
+- Spiega le risposte corrette
+- Incoraggia e motiva lo studente
+- Adatta la difficoltà in base alle risposte`
+        };
+
+        window.onload = function() {
+            const savedKey = localStorage.getItem('groqApiKey');
+            if (savedKey) {
+                apiKey = savedKey;
+                document.getElementById('apiKeyInput').value = savedKey;
+                document.getElementById('apiKeySection').style.display = 'none';
+            }
+
+            const savedHistory = localStorage.getItem('tutorHistory');
+            if (savedHistory) {
+                conversationHistory = JSON.parse(savedHistory);
+                renderHistory();
+            }
+        };
+
+        function saveApiKey() {
+            const input = document.getElementById('apiKeyInput');
+            apiKey = input.value.trim();
+            
+            if (!apiKey) {
+                alert('Inserisci una API key valida');
+                return;
+            }
+
+            localStorage.setItem('groqApiKey', apiKey);
+            document.getElementById('apiKeySection').style.display = 'none';
+            addMessage('assistant', '🎉 Perfetto! API Key salvata. Sono pronto ad aiutarti a studiare! Cosa vuoi imparare oggi?');
+        }
+
+        function setMode(mode) {
+            currentMode = mode;
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-mode="${mode}"]`).classList.add('active');
+            
+            const modeNames = {
+                spiegazione: 'Spiegazione',
+                esercizi: 'Esercizi',
+                ripasso: 'Ripasso',
+                correzione: 'Correzione',
+                quiz: 'Quiz'
+            };
+            
+            addMessage('assistant', `✨ Modalità cambiata: ${modeNames[mode]}. Come posso aiutarti?`);
+        }
+
+        function addMessage(role, content) {
+            const container = document.getElementById('chatContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${role}`;
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.textContent = role === 'user' ? '👤' : '🎓';
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.textContent = content;
+            
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(contentDiv);
+            container.appendChild(messageDiv);
+            
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function renderHistory() {
+            const container = document.getElementById('chatContainer');
+            const welcomeCard = container.querySelector('.welcome-card');
+            container.innerHTML = '';
+            if (welcomeCard) container.appendChild(welcomeCard);
+            
+            conversationHistory.forEach(msg => {
+                if (msg.role !== 'system') {
+                    addMessage(msg.role, msg.content);
+                }
+            });
+        }
+
+        async function sendMessage() {
+            if (!apiKey) {
+                alert('Inserisci prima la tua API key');
+                return;
+            }
+
+            const input = document.getElementById('messageInput');
+            let message = input.value.trim();
+            
+            if (!message) return;
+
+            const subject = document.getElementById('subjectSelect').value;
+            const level = document.getElementById('levelSelect').value;
+            
+            let contextPrefix = `[Livello: ${level}`;
+            if (subject) contextPrefix += `, Materia: ${subject}`;
+            contextPrefix += `]\n\n`;
+            
+            message = contextPrefix + message;
+
+            const sendBtn = document.getElementById('sendBtn');
+            sendBtn.disabled = true;
+            sendBtn.textContent = 'Penso...';
+
+            addMessage('user', input.value.trim());
+            
+            const systemPrompt = `${MODE_PROMPTS[currentMode]}\n\nRispondi sempre in italiano. Sii paziente, chiaro e incoraggiante. Adatta il linguaggio al livello scolastico dello studente.`;
+            
+            if (conversationHistory.length === 0 || conversationHistory[0].role !== 'system') {
+                conversationHistory.unshift({ role: 'system', content: systemPrompt });
+            } else {
+                conversationHistory[0].content = systemPrompt;
+            }
+            
+            conversationHistory.push({ role: 'user', content: message });
+            input.value = '';
+
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'message assistant';
+            loadingDiv.id = 'loading';
+            loadingDiv.innerHTML = `
+                <div class="message-avatar">🎓</div>
+                <div class="message-content">
+                    <span class="loading"></span>
+                    <span class="loading" style="animation-delay: 0.2s;"></span>
+                    <span class="loading" style="animation-delay: 0.4s;"></span>
+                    Sto pensando alla risposta migliore...
+                </div>
+            `;
+            document.getElementById('chatContainer').appendChild(loadingDiv);
+
+            try {
+                const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${apiKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: 'llama-3.3-70b-versatile',
+                        messages: conversationHistory,
+                        temperature: 0.7,
+                        max_tokens: 3000
+                    })
+                });
+
+                document.getElementById('loading').remove();
+
+                if (!response.ok) {
+                    throw new Error(`Errore API: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const assistantMessage = data.choices[0].message.content;
+
+                addMessage('assistant', assistantMessage);
+                conversationHistory.push({ role: 'assistant', content: assistantMessage });
+
+                localStorage.setItem('tutorHistory', JSON.stringify(conversationHistory));
+
+            } catch (error) {
+                document.getElementById('loading')?.remove();
+                addMessage('assistant', `❌ Ops! Si è verificato un errore: ${error.message}\n\nVerifica la tua API key e riprova.`);
+            }
+
+            sendBtn.disabled = false;
+            sendBtn.textContent = 'Invia';
+        }
+
+        function clearChat() {
+            if (confirm('Vuoi iniziare una nuova sessione di studio?')) {
+                conversationHistory = [];
+                localStorage.removeItem('tutorHistory');
+                location.reload();
+            }
+        }
+    </script>
+</body>
+</html>
